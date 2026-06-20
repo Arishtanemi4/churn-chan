@@ -1,0 +1,43 @@
+{
+  "plan": {
+    "name": "Pro Tier",
+    "limit": 100,
+    "price": 25.0
+  },
+  "personas": [
+    {
+      "name": "Alex",
+      "description": "",
+      "price_sensitivity": 0,
+      "churn_risk": 0,
+      "archetype": "freelancer_designer"
+    },
+    {
+      "name": "Jordan",
+      "description": "",
+      "price_sensitivity": 0,
+      "churn_risk": 0,
+      "archetype": "startup_engineer"
+    },
+    {
+      "name": "Taylor",
+      "description": "",
+      "price_sensitivity": 0,
+      "churn_risk": 0,
+      "archetype": "procurement_manager"
+    }
+  ],
+  "prompts": [
+    {
+      "id": "prompt_simple",
+      "text": "You have reached your project limit. Please upgrade to the Pro Tier to continue working.",
+      "trigger": "at 100% of usage"
+    },
+    {
+      "id": "prompt_value",
+      "text": "You're moving fast! Upgrade to Pro today to unlock unlimited projects, 24/7 priority support, and advanced analytics.",
+      "trigger": "at 100% of usage"
+    }
+  ],
+  "runs_per_combo": 3
+}

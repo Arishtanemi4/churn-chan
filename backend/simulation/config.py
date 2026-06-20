@@ -1,0 +1,4 @@
+import config
+
+RUNS_PER_COMBO = config.DEFAULT_RUNS_PER_COMBO
+MAX_CONCURRENCY = 4

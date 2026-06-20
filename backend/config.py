@@ -1,0 +1,5 @@
+OLLAMA_HOST = "http://localhost:11434"
+MODEL = "llama3.1"
+DEFAULT_RUNS_PER_COMBO = 10
+SERVER_HOST = "0.0.0.0"
+SERVER_PORT = 8000
