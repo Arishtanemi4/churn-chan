@@ -1,6 +1,42 @@
 import { useState, useEffect } from 'react'
-import { SEGMENTS, STRATEGIES, TRIGGERS, SEG_RESPONSE, INSIGHTS } from '../data'
+import { SEGMENTS } from '../data'
 import { useCountUp } from '../hooks/useCountUp'
+import { simResponseToDisplay } from '../services/transform'
+
+// Fallback mock data used when backend is unavailable
+const STRATEGIES = [
+  { msg: 'Variant B', offer: '25%', seg: 'At-Risk',         ret: 82.4, red: 34.1, best: true  },
+  { msg: 'Variant B', offer: '30%', seg: 'Price-Sensitive', ret: 79.1, red: 29.8, best: false },
+  { msg: 'Variant C', offer: '15%', seg: 'Power Users',     ret: 74.6, red: 21.2, best: false },
+  { msg: 'Variant A', offer: '20%', seg: 'Casual',          ret: 68.3, red: 17.9, best: false },
+]
+const TRIGGERS = [
+  { name: 'Price too high after trial',   pct: 38, color: '#FF5C6C' },
+  { name: 'No perceived feature value',   pct: 24, color: '#FF8A4D' },
+  { name: 'Competitor offer',             pct: 19, color: '#FFB84D' },
+  { name: 'Poor onboarding completion',   pct: 12, color: '#6B5FFF' },
+  { name: 'Support frustration',          pct: 7,  color: '#4D8CFF' },
+]
+const SEG_RESPONSE = [
+  { seg: 'Price-Sens.', ret: 62, chu: 18, con: 20 },
+  { seg: 'Power',       ret: 48, chu: 9,  con: 43 },
+  { seg: 'At-Risk',     ret: 71, chu: 21, con: 8  },
+  { seg: 'Casual',      ret: 58, chu: 27, con: 15 },
+]
+const INSIGHTS = [
+  { name: 'Maya Rodriguez', initials: 'MR', seg: 'atrisk', color: '#FF5C6C', outcome: 'Retained', kind: 'ret',
+    why: 'Had logged a downgrade intent twice; the 25% annual discount removed her primary cost objection.',
+    msg: 'Variant B — "Your workflow, locked in for less"' },
+  { name: 'James Tan', initials: 'JT', seg: 'price', color: '#6B5FFF', outcome: 'Churned', kind: 'chu',
+    why: 'Even at 30% off, perceived the tool as redundant with a free alternative he already used.',
+    msg: 'Variant B — ignored after open' },
+  { name: 'Priya Kapoor', initials: 'PK', seg: 'power', color: '#00D4B4', outcome: 'Converted', kind: 'con',
+    why: 'High feature adoption made the annual upgrade an easy yes once savings were quantified for her.',
+    msg: 'Variant C — "Power tools deserve a power plan"' },
+  { name: 'Sofia Lindqvist', initials: 'SL', seg: 'casual', color: '#FFB84D', outcome: 'Churned', kind: 'chu',
+    why: 'Low engagement and no recent value moment; discount alone could not re-establish a habit.',
+    msg: 'Variant A — no engagement' },
+]
 
 const fmt = (n) => n.toLocaleString('en-US')
 
@@ -10,7 +46,6 @@ function kindStyle(kind) {
   return { color: 'var(--teal)', bg: 'rgba(0,212,180,0.14)' }
 }
 
-/* ── Metric card with count-up ── */
 function MetricCard({ label, value, decimals = 0, suffix = '', prefix = '', foot, hero, start }) {
   const v = useCountUp(value, 1500, start, decimals)
   return (
@@ -22,14 +57,14 @@ function MetricCard({ label, value, decimals = 0, suffix = '', prefix = '', foot
   )
 }
 
-/* ── Horizontal bar chart: churn triggers ── */
-function ChurnTriggers({ start }) {
+function ChurnTriggers({ triggers, start }) {
+  const maxPct = Math.max(...triggers.map((t) => t.pct), 1)
   return (
     <div className="card">
       <div className="section-title">Why personas churned</div>
       <div className="section-sub">Top triggers extracted from agent reasoning across all runs</div>
-      {TRIGGERS.map((t, i) => (
-        <div className="trigger" key={t.name}>
+      {triggers.map((t, i) => (
+        <div className="trigger" key={i}>
           <div className="trigger-top">
             <span className="tname">{t.name}</span>
             <span className="tpct tnum" style={{ color: t.color }}>{t.pct}%</span>
@@ -38,7 +73,7 @@ function ChurnTriggers({ start }) {
             <div
               className="trigger-fill"
               style={{
-                width: start ? `${(t.pct / 38) * 100}%` : 0,
+                width: start ? `${(t.pct / maxPct) * 100}%` : 0,
                 background: t.color,
                 transitionDelay: `${i * 0.08}s`,
               }}
@@ -50,11 +85,10 @@ function ChurnTriggers({ start }) {
   )
 }
 
-/* ── Grouped bar chart: segment response ── */
-function SegmentChart({ start }) {
+function SegmentChart({ segResponse, start }) {
   const [hover, setHover] = useState(null)
   const W = 320, H = 180, pad = 26
-  const gw = (W - pad * 2) / SEG_RESPONSE.length
+  const gw = (W - pad * 2) / segResponse.length
   const barW = 13, gap = 4
   const series = [
     { key: 'ret', solid: '#2FD78B' },
@@ -65,7 +99,7 @@ function SegmentChart({ start }) {
   return (
     <div className="card">
       <div className="section-title">Segment response breakdown</div>
-      <div className="section-sub">How each segment reacted to the winning strategy (Variant B · 25% · At-Risk)</div>
+      <div className="section-sub">How each segment reacted across all tested variants</div>
       <svg width="100%" viewBox={`0 0 ${W} ${H + 24}`} style={{ overflow: 'visible' }}>
         <defs>
           {series.map((s) => (
@@ -82,7 +116,7 @@ function SegmentChart({ start }) {
               stroke="var(--border)" strokeWidth="1" strokeDasharray="2 4" />
           )
         })}
-        {SEG_RESPONSE.map((grp, gi) => {
+        {segResponse.map((grp, gi) => {
           const gx = pad + gi * gw
           const totalW = series.length * barW + (series.length - 1) * gap
           const startX = gx + (gw - totalW) / 2
@@ -135,10 +169,9 @@ function SegmentChart({ start }) {
   )
 }
 
-/* ── Expandable persona insight card ── */
 function InsightCard({ p }) {
   const [open, setOpen] = useState(false)
-  const seg = SEGMENTS[p.seg]
+  const seg = SEGMENTS[p.seg] || { label: p.seg, color: p.color }
   const ks  = kindStyle(p.kind)
   return (
     <div className={`insight ${open ? 'open' : ''}`}>
@@ -178,13 +211,26 @@ function InsightCard({ p }) {
   )
 }
 
-/* ── Results screen ── */
-export default function Results({ config, onRestart }) {
+export default function Results({ config, results, onRestart }) {
   const [start, setStart] = useState(false)
   useEffect(() => {
     const t = setTimeout(() => setStart(true), 80)
     return () => clearTimeout(t)
   }, [])
+
+  // Compute display data from real API results, or fall back to mock data
+  const live = results?.results ? simResponseToDisplay(results.results, config) : null
+
+  const strategies  = live?.strategies  ?? STRATEGIES
+  const triggers    = live?.triggers?.length ? live.triggers    : TRIGGERS
+  const segResponse = live?.segResponse?.length ? live.segResponse : SEG_RESPONSE
+  const insights    = live?.insights?.length    ? live.insights    : INSIGHTS
+
+  const churnRate      = live?.avgChurnPct      ?? 18.4
+  const retentionLift  = live?.retentionLift    ?? 12.8
+  const bestVariant    = live?.bestVariant       ?? 'Variant B'
+  const revenueSaved   = live?.revenueSaved      ?? 142000
+  const bestRetRate    = strategies[0]?.ret      ?? 82.4
 
   return (
     <div className="shell fade-up">
@@ -203,16 +249,16 @@ export default function Results({ config, onRestart }) {
 
       {/* Headline metrics */}
       <div className="metric-row">
-        <MetricCard start={start} label="Predicted churn rate" value={18.4} decimals={1} suffix="%"
-          foot={<><span className="delta-down">▼ 12.8pt</span> vs baseline 31.2%</>} />
-        <MetricCard start={start} label="Retention lift" value={12.8} decimals={1} prefix="+" suffix="pt"
+        <MetricCard start={start} label="Predicted churn rate" value={churnRate} decimals={1} suffix="%"
+          foot={<><span className="delta-down">▼ {Math.abs(retentionLift).toFixed(1)}pt</span> vs baseline {(churnRate + Math.abs(retentionLift)).toFixed(1)}%</>} />
+        <MetricCard start={start} label="Retention lift" value={Math.abs(retentionLift)} decimals={1} prefix="+" suffix="pt"
           foot={<><span className="delta-pos">▲</span> projected over 90 days</>} />
         <div className="metric-card hero">
           <span className="label">Best performing message</span>
-          <div className="variant-big">Variant B</div>
-          <div className="metric-foot"><span className="delta-pos">▲ 82.4%</span> retention on At-Risk</div>
+          <div className="variant-big">{bestVariant}</div>
+          <div className="metric-foot"><span className="delta-pos">▲ {bestRetRate}%</span> retention on {strategies[0]?.seg ?? 'At-Risk'}</div>
         </div>
-        <MetricCard start={start} label="Est. revenue saved" value={142000} prefix="$"
+        <MetricCard start={start} label="Est. revenue saved" value={revenueSaved} prefix="$"
           foot={<span style={{ color: 'var(--text-dim)' }}>per month · recurring</span>} />
       </div>
 
@@ -235,7 +281,7 @@ export default function Results({ config, onRestart }) {
               </tr>
             </thead>
             <tbody>
-              {STRATEGIES.map((s, i) => (
+              {strategies.map((s, i) => (
                 <tr key={i} className={s.best ? 'best' : ''}>
                   <td>
                     {s.best && <span className="best-tag">★ Best strategy</span>}
@@ -271,8 +317,8 @@ export default function Results({ config, onRestart }) {
 
       {/* Charts */}
       <div className="two-col">
-        <ChurnTriggers start={start} />
-        <SegmentChart start={start} />
+        <ChurnTriggers triggers={triggers} start={start} />
+        <SegmentChart segResponse={segResponse} start={start} />
       </div>
 
       {/* Persona insights */}
@@ -280,7 +326,7 @@ export default function Results({ config, onRestart }) {
         <div className="section-title">Persona insights</div>
         <div className="section-sub">Notable archetypes and the reasoning behind their decisions — click to expand</div>
         <div className="insight-grid">
-          {INSIGHTS.map((p) => <InsightCard key={p.name} p={p} />)}
+          {insights.map((p, i) => <InsightCard key={p.name ?? i} p={p} />)}
         </div>
       </div>
 

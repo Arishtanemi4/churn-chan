@@ -35,69 +35,6 @@ export const FEED_TEMPLATES = [
   { name: 'Owen P.',   seg: 'Power user',      action: 'Expanded seats on annual',          out: 'Converted', icon: '↑', kind: 'con' },
 ]
 
-export const STRATEGIES = [
-  { msg: 'Variant B', offer: '25%', seg: 'At-Risk',         ret: 82.4, red: 34.1, best: true  },
-  { msg: 'Variant B', offer: '30%', seg: 'Price-Sensitive', ret: 79.1, red: 29.8, best: false },
-  { msg: 'Variant C', offer: '15%', seg: 'Power Users',     ret: 74.6, red: 21.2, best: false },
-  { msg: 'Variant A', offer: '20%', seg: 'Casual',          ret: 68.3, red: 17.9, best: false },
-  { msg: 'Variant B', offer: '10%', seg: 'All Users',       ret: 64.0, red: 13.4, best: false },
-  { msg: 'Variant A', offer: '0%',  seg: 'At-Risk',         ret: 51.2, red: 4.6,  best: false },
-]
-
-export const TRIGGERS = [
-  { name: 'Price too high after trial',   pct: 38, color: '#FF5C6C' },
-  { name: 'No perceived feature value',   pct: 24, color: '#FF8A4D' },
-  { name: 'Competitor offer',             pct: 19, color: '#FFB84D' },
-  { name: 'Poor onboarding completion',   pct: 12, color: '#6B5FFF' },
-  { name: 'Support frustration',          pct: 7,  color: '#4D8CFF' },
-]
-
-export const SEG_RESPONSE = [
-  { seg: 'Price-Sens.', ret: 62, chu: 18, con: 20 },
-  { seg: 'Power',       ret: 48, chu: 9,  con: 43 },
-  { seg: 'At-Risk',     ret: 71, chu: 21, con: 8  },
-  { seg: 'Casual',      ret: 58, chu: 27, con: 15 },
-]
-
-export const INSIGHTS = [
-  {
-    name: 'Maya Rodriguez', initials: 'MR', seg: 'atrisk', color: '#FF5C6C',
-    outcome: 'Retained', kind: 'ret',
-    why: 'Had logged a downgrade intent twice; the 25% annual discount removed her primary cost objection.',
-    msg: 'Variant B — "Your workflow, locked in for less"',
-  },
-  {
-    name: 'James Tan', initials: 'JT', seg: 'price', color: '#6B5FFF',
-    outcome: 'Churned', kind: 'chu',
-    why: 'Even at 30% off, perceived the tool as redundant with a free alternative he already used.',
-    msg: 'Variant B — ignored after open',
-  },
-  {
-    name: 'Priya Kapoor', initials: 'PK', seg: 'power', color: '#00D4B4',
-    outcome: 'Converted', kind: 'con',
-    why: 'High feature adoption made the annual upgrade an easy yes once savings were quantified for her.',
-    msg: 'Variant C — "Power tools deserve a power plan"',
-  },
-  {
-    name: 'Devon Walsh', initials: 'DW', seg: 'atrisk', color: '#FF5C6C',
-    outcome: 'Retained', kind: 'ret',
-    why: 'Frustrated by onboarding gaps; a concierge setup offer attached to Variant A rebuilt trust.',
-    msg: 'Variant A — "Let us set this up for you"',
-  },
-  {
-    name: 'Sofia Lindqvist', initials: 'SL', seg: 'casual', color: '#FFB84D',
-    outcome: 'Churned', kind: 'chu',
-    why: 'Low engagement and no recent value moment; discount alone could not re-establish a habit.',
-    msg: 'Variant A — no engagement',
-  },
-  {
-    name: 'Marcus Bell', initials: 'MB', seg: 'power', color: '#00D4B4',
-    outcome: 'Converted', kind: 'con',
-    why: 'Stacked the loyalty credit onto an annual plan to maximize savings on a tool he depends on daily.',
-    msg: 'Variant C — "Lock in your stack for 2026"',
-  },
-]
-
 export const BASE_DIST = { price: 0.26, power: 0.18, atrisk: 0.20, casual: 0.24, newish: 0.12 }
 export const TOTAL_PERSONAS = 1000
 export const RUN_OPTIONS = [100, 500, 1000, 5000]

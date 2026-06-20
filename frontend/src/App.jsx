@@ -19,6 +19,7 @@ const DEFAULT_CONFIG = {
 export default function App() {
   const [screen, setScreen] = useState('setup')
   const [config, setConfig] = useState(DEFAULT_CONFIG)
+  const [results, setResults] = useState(null)
 
   const go = (s) => {
     setScreen(s)
@@ -29,8 +30,8 @@ export default function App() {
     <>
       <TopBar screen={screen} />
       {screen === 'setup'   && <Setup   config={config} setConfig={setConfig} onRun={() => go('sim')} />}
-      {screen === 'sim'     && <Sim     config={config} onDone={() => go('results')} />}
-      {screen === 'results' && <Results config={config} onRestart={() => go('setup')} />}
+      {screen === 'sim'     && <Sim     config={config} onDone={(r) => { setResults(r); go('results') }} />}
+      {screen === 'results' && <Results config={config} results={results} onRestart={() => { setResults(null); go('setup') }} />}
     </>
   )
 }

@@ -13,3 +13,6 @@
 
 # CLAUDE cache
 *.claude*
+
+# REactJS dependencies
+*node_modules*

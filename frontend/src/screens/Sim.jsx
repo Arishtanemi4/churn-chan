@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { FEED_TEMPLATES } from '../data'
 import { easeOutCubic } from '../hooks/useCountUp'
+import { api } from '../services/api'
+import { configToSimRequest } from '../services/transform'
 
 const fmt = (n) => n.toLocaleString('en-US')
 
@@ -14,12 +16,29 @@ const DURATION = 3400
 
 export default function Sim({ config, onDone }) {
   const TARGET = config.runs
-  const [count,   setCount]   = useState(0)
+  const [count,    setCount]    = useState(0)
   const [progress, setProgress] = useState(0)
-  const [feed,    setFeed]    = useState([])
-  const [metrics, setMetrics] = useState({ ret: 0, chu: 0, con: 0 })
-  const feedId = useRef(0)
+  const [feed,     setFeed]     = useState([])
+  const [metrics,  setMetrics]  = useState({ ret: 0, chu: 0, con: 0 })
+  const [waiting,  setWaiting]  = useState(false) // true after animation ends, API still pending
+  const feedId     = useRef(0)
+  const apiResult  = useRef(undefined) // undefined = in-flight, null = error, object = data
+  const animDone   = useRef(false)
 
+  // Fire API call immediately
+  useEffect(() => {
+    api.simulate(configToSimRequest(config))
+      .then((data) => {
+        apiResult.current = data
+        if (animDone.current) onDone(data)
+      })
+      .catch(() => {
+        apiResult.current = null
+        if (animDone.current) onDone(null)
+      })
+  }, []) // eslint-disable-line
+
+  // Animation loop
   useEffect(() => {
     let raf, t0
     const step = (ts) => {
@@ -33,13 +52,36 @@ export default function Sim({ config, onDone }) {
         chu: Math.round(TARGET * 0.18 * e),
         con: Math.round(TARGET * 0.20 * e),
       })
-      if (p < 1) raf = requestAnimationFrame(step)
-      else setTimeout(onDone, 480)
+      if (p < 1) {
+        raf = requestAnimationFrame(step)
+      } else {
+        animDone.current = true
+        if (apiResult.current !== undefined) {
+          // API already resolved — proceed immediately
+          setTimeout(() => onDone(apiResult.current), 480)
+        } else {
+          // API still in flight — show waiting state
+          setWaiting(true)
+        }
+      }
     }
     raf = requestAnimationFrame(step)
     return () => cancelAnimationFrame(raf)
   }, []) // eslint-disable-line
 
+  // Poll for API resolution while in waiting state
+  useEffect(() => {
+    if (!waiting) return
+    const iv = setInterval(() => {
+      if (apiResult.current !== undefined) {
+        clearInterval(iv)
+        onDone(apiResult.current)
+      }
+    }, 300)
+    return () => clearInterval(iv)
+  }, [waiting]) // eslint-disable-line
+
+  // Live feed animation
   useEffect(() => {
     let i = 0
     const iv = setInterval(() => {
@@ -50,6 +92,8 @@ export default function Sim({ config, onDone }) {
     }, 360)
     return () => clearInterval(iv)
   }, [])
+
+  const apiReady = apiResult.current !== undefined
 
   return (
     <div className="sim-screen">
@@ -65,7 +109,9 @@ export default function Sim({ config, onDone }) {
 
           <div className="sim-eyebrow">
             <span className="pulse-dot" />
-            <span className="label" style={{ color: 'var(--teal)' }}>Mission Control · Persona Engine Running</span>
+            <span className="label" style={{ color: 'var(--teal)' }}>
+              {waiting ? 'Aggregating results…' : 'Mission Control · Persona Engine Running'}
+            </span>
           </div>
 
           <div className="counter tnum">{fmt(count)}</div>
@@ -88,8 +134,13 @@ export default function Sim({ config, onDone }) {
             </div>
           </div>
 
-          <button className="ghost-btn" style={{ marginTop: 36 }} onClick={onDone}>
-            Skip to results →
+          <button
+            className="ghost-btn"
+            style={{ marginTop: 36, opacity: apiReady ? 1 : 0.4, cursor: apiReady ? 'pointer' : 'not-allowed' }}
+            disabled={!apiReady}
+            onClick={() => apiReady && onDone(apiResult.current)}
+          >
+            {apiReady ? 'Skip to results →' : 'Processing…'}
           </button>
         </div>
 
