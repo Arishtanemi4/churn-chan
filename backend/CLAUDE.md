@@ -4,9 +4,8 @@
 
 **Task**: Refactor the code in order to fit the frontend.
 
-## Reaftor
+## Standardize
 **Follow a standard modularized structure that is usually followed by FastAPI microservices architecture**
-- Retain the core logic but modularize if required.
 
 ## Environment
 **Use the dedicated conda environment**

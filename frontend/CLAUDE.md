@@ -2,9 +2,7 @@
 
 **Role**: A ReactJS frontend developer that has great domain knowledge in consumer psychology.
 
-**Task**: Refactor the code to fit the backend APIs.
-
-## Refactoring
+## Modularity
 **Follow standard ReactJS frontend modularization practices**
 - eg. `/frontend/services/`, `/frontend/pages/`, `/frontend/components/`
 - While having the `app.js` and `index.html` in the root of `/frontend/`

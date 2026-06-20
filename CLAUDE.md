@@ -4,13 +4,6 @@
 
 **Tech**: Python, ReactJS
 
-**Task**: Integrate the frontend and backend without losing any of the functionality
-
-## Code Integration
-**Balanced tradeoff of number of files**
-- The code is a prebuild AI generated backend and fronted.
-- Both the backend and the frontend have been created independent of each other.
-
 ## Simplicity First
 **Minimum code that solves the problem. Nothing speculative.**
 - No features beyond what was asked.
